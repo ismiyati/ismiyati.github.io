@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <style>
+        @font-face {
+          font-family: "tetris";
+          src: url("https://birowo.github.io/tetris.otf");
+        }
+      </style>
+    </head>
+    <body>
+        <div style="text-align: center">
+            <div id="view1"></div><br>
+            <button id="pausEl">PLAY</button> | <span id="skor">0</span> | <button onclick="fDrop()">DROP</button><br><br><br>
+            <button onclick="fLeft()">LEFT</button> | <button onclick="fTurn()">TURN</button> | <button onclick="fRght()">RGHT</button>
+        </div>
+ 
+        <script>
+            const a = false, b = true, t = [
+                [//0
+                    a, a, b, a,
+                    a, a, b, a,
+                    a, a, b, a,
+                    a, a, b, a
+                ],
+                [//1
+                    a, a, a, a,
+                    a, a, b, a,
+                    a, a, b, a,
+                    a, b, b, a
+                ],
+                [//2
+                    a, a, a, a,
+                    a, b, a, a,
+                    a, b, a, a,
+                    a, b, b, a
+                ],
+                [//3
+                    a, a, a, a,
+                    a, a, b, a,
+                    a, b, b, a,
+                    a, b, a, a
+                ],
+                [//4
+                    a, a, a, a,
+                    a, b, a, a,
+                    a, b, b, a,
+                    a, a, b, a
+                ],
+                [//5
+                    a, a, a, a,
+                    a, a, b, a,
+                    a, b, b, a,
+                    a, a, b, a
+                ],
+                [//6
+                    a, a, a, a,
+                    a, b, b, a,
+                    a, b, b, a,
+                    a, a, a, a
+                ]
+            ]
+            const A = 'A', B = 'B', C = 'C'
+            const height = 23, width = 10
+            const fontSize = 28
+            view1.style.cssText = '\
+                display: inline-block;\
+                font-family: tetris;\
+                background: silver;\
+                overflow-wrap: break-word;\
+                font-size:'+ fontSize +'px;\
+                line-height:'+fontSize+'px;\
+                text-align: center;\
+                width:' + fontSize*width +'px;\
+                background: silver\
+            '
+            var w = []
+            function clr(){
+                for(var i=0; i<(height*width); i++){
+                    w[i] = A
+                }
+                view1.innerHTML = w.slice(width*3).join('')
+            }
+            clr()
+            var v = t[Math.floor(Math.random()*t.length)]
+            const n = v.length, side = Math.sqrt(n)
+            var row = -1, col = 3, delay = 999, pause = true, start = false;
+            pausEl.onclick = function(){
+                if(start){
+                    start = false
+                    clr()
+                    row = -1
+                    skor.innerHTML = '0'
+                }
+                pause = !pause
+                this.innerHTML = pause? 'PLAY': 'PAUS'
+            }
+            function fDown(){
+                if(!pause){
+                    row++
+                    if(chck(row, col)) put(row, col); else if(row==0){
+                        start = true
+                        pause = true
+                        pausEl.innerHTML = "PLAY"
+                        view1.innerHTML = 'gameover'
+                    }else{
+                        for(var i=0; i<w.length; i++) if(w[i]=='B') w[i]='C';
+                        xxx(height)
+                        v = t[Math.floor(Math.random()*t.length)]
+                        row = -1
+                        col = 3
+                        delay = 999
+                    }
+                }
+                setTimeout(fDown, delay)
+            }
+            fDown()
+            function fDrop(){
+                if(!pause) delay = 250
+            }
+            function fTurn(){
+                if(pause) return;
+                var _v = v, a = []
+                for(var i=0; i<n; i++){
+                    a[i] = v[4*Math.abs(i%side-side+1) + Math.floor(i/side)]
+                }
+                v = a
+                if(chck(row, col)) put(row, col); else v = _v;
+            }
+            function fLeft(){
+                if(pause) return;
+                col--
+                if(chck(row, col)) put(row, col); else col++;
+            }
+            function fRght(){
+                if(pause) return;
+                col++
+                if(chck(row, col)) put(row, col); else col--;
+            }
+            function chck(row, col){
+                var k = 0
+                for(var i = row; i<(row+4); i++){
+                    for(var j = col; j<(col+4); j++){
+                        if(v[k] && (i>=height || j<0 || j>=width || w[i*width + j]==C)) return false; 
+                        k++
+                    }
+                }
+                return true
+            }
+            function put(row, col){
+                for(var i=0; i<w.length; i++) if(w[i] == 'B') w[i] = 'A';
+                var k = 0
+                for(var i = row; i<(row+4); i++){
+                    for(var j = col; j<(col+4); j++){
+                        if(v[k]) w[i*width + j] = B;
+                        k++
+                    }
+                }
+                view1.innerHTML = w.slice(width*3).join('')
+            }
+            function xxx(){ //src = height
+                var src = height - 1
+                var dst = src
+                for(; src>0;){
+                    for(var i=0; i<width; i++){
+                        if(w[dst*width + i] == 'A'){
+                            dst--
+                            break
+                        }
+                    } 
+                    src--
+                    if(src != dst) for(var i=0; i<width; i++) w[dst*width + i] = w[src*width + i];
+                }
+                if(dst>0) skor.innerHTML++;
+                for(; dst>=0; dst--) for(var i=0; i<width; i++) w[dst*width + i] = 'A';
+            }
+        </script>
+    </body>
+</html>
